@@ -43,18 +43,6 @@ vector_ret_t vector_destroy(vector_t* vector);
  *
  * RETURN VALUES:
  * VECTOR_SUCCESS
- * VECTOR_OVERFLOW -- vector is full and the first element is overwritten
- * VECTOR_FAILURE -- vector or element is NULL pointer
- * 
- * [in] - vector, element
- */
-vector_ret_t vector_push_begin(vector_t* vector, void* element);
-
-/**
- * Adds an element to the vector.
- *
- * RETURN VALUES:
- * VECTOR_SUCCESS
  * VECTOR_OVERFLOW -- vector is full and the last element is overwritten
  * VECTOR_FAILURE -- vector or element is NULL pointer
  *
@@ -74,18 +62,6 @@ vector_ret_t vector_push_end(vector_t* vector, void* element);
  * [out] - p_element
  */
 vector_ret_t vector_pop_begin(vector_t* vector, void** p_element);
-
-/**
- * Removes an element from the vector.
- * RETURN VALUES:
- * VECTOR_SUCCESS
- * VECTOR_UNDERFLOW -- vector is empty
- * VECTOR_FAILURE -- vector or p_element are NULL pointers
- * 
- * [in] - vector
- * [out] - p_element
- */
-vector_ret_t vector_pop_end(vector_t* vector, void** p_element);
 
 /**
  * Peeks the first element at the front of the vector.

@@ -33,11 +33,9 @@ struct vector_t
 vector_t* vector_create(const size_t capacity);
 vector_ret_t vector_destroy(vector_t* vector);
 
-vector_ret_t vector_push_begin(vector_t* vector, void* element);
 vector_ret_t vector_push_end(vector_t* vector, void* element);
 
 vector_ret_t vector_pop_begin(vector_t* vector, void* element);
-vector_ret_t vector_pop_end(vector_t* vector, void* element);
 
 vector_ret_t vector_peek_begin(const vector_t* vector, void** p_element);
 vector_ret_t vector_peek_end(const vector_t* vector, void** p_element);
@@ -93,21 +91,6 @@ vector_ret_t vector_destroy(vector_t* vector)
 	return VECTOR_SUCCESS;
 }
 
-vector_ret_t vector_push_begin(vector_t* vector, void* element)
-{
-	CHECK_AND_RETURN_IF_NOT_EXIST(vector);
-
-	vector->begin = vector_prev_index(vector->begin, vector->capacity);
-	vector->element[vector->begin] = element;
-
-	if (vector->begin == vector->end)
-	{
-		vector->end = vector_prev_index(vector->end, vector->capacity);
-		return VECTOR_OVERFLOW;
-	}
-	return VECTOR_SUCCESS;
-}
-
 vector_ret_t vector_push_end(vector_t* vector, void* element)
 {
 	CHECK_AND_RETURN_IF_NOT_EXIST(vector);
@@ -135,21 +118,6 @@ vector_ret_t vector_pop_begin(vector_t* vector, void** p_element)
 
 	*p_element = vector->element[vector->begin];
 	vector->begin = vector_next_index(vector->begin, vector->capacity);
-	return VECTOR_SUCCESS;
-}
-
-vector_ret_t vector_pop_end(vector_t* vector, void** p_element)
-{
-	CHECK_AND_RETURN_IF_NOT_EXIST(vector);
-	CHECK_AND_RETURN_IF_NOT_EXIST(p_element);
-
-	if (vector->begin == vector->end)
-	{
-		return VECTOR_UNDERFLOW;
-	}
-
-	vector->end = vector_prev_index(vector->end, vector->capacity);
-	*p_element = vector->element[vector->end];
 	return VECTOR_SUCCESS;
 }
 
