@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <pthread.h>
 
@@ -53,13 +54,13 @@ static inline size_t vector_prev_index(const size_t index, const size_t capacity
 
 
 
-vector_t* vector_create(const size_t capacity)
+vector_t* vector_create(size_t capacity)
 {
 	vector_t* vector = malloc(sizeof(*vector));
 
 	if (vector == NULL)
 	{
-		debug_print("Not enough memory for capacity: %zd\n", capacity);
+		debug_print("Not enough memory for capacity: %zu\n", capacity);
 		return NULL;
 	}
 
@@ -67,7 +68,7 @@ vector_t* vector_create(const size_t capacity)
 
 	if (vector->element == NULL)
 	{
-		debug_print("Not enough memory for capacity: %zd\n", capacity);
+		debug_print("Not enough memory for capacity: %zu\n", capacity);
 		free(vector);
 		return NULL;
 	}
@@ -77,9 +78,12 @@ vector_t* vector_create(const size_t capacity)
 
 	if (pthread_mutex_init(&vector->mutex, NULL) != 0 ||
 		pthread_cond_init(&vector->cond, NULL) != 0) {
+		debug_print("Could not initialize mutex or conditional variable\n");
 		vector_destroy(vector);
 		return NULL;
 	}
+
+	debug_print("Vector elements address: %p with capacity: %zu\n", vector->element, vector->capacity);
 
 	return vector;
 }
@@ -106,6 +110,7 @@ vector_ret_t vector_push(vector_t* vector, void* element)
 
 	if (vector_next_index(vector->end, vector->capacity) == vector->begin) {	// Vector full condition
 		if (vector_enlarge(vector) != VECTOR_SUCCESS) {
+			debug_print("Could not enlarge vector\n");
 			return VECTOR_FAILURE;
 		}
 	}
@@ -191,7 +196,12 @@ static vector_ret_t vector_enlarge(vector_t* vector) {
 		vector->end = (vector->capacity + 1 - vector->begin) + vector->end;
 	}
 
-	vector->capacity = vector->capacity * 2 + 1;
+	vector->capacity = vector->capacity * 2;
+
+	free(vector->element);
+	vector->element = new_location;
+
+	debug_print("New vector elements address: %p with capacity: %zu\n", vector->element, vector->capacity);
 
 	return VECTOR_SUCCESS;
 }
