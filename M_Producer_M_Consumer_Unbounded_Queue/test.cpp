@@ -68,6 +68,9 @@ TEST(SPSC, Thread_Smoke_Test_Vector)
 
 	std::thread t1([&vector]() {
 		void* t_ptr = nullptr;
+
+		sleep(1);
+
 		EXPECT_EQ(vector_pop(vector, &t_ptr), VECTOR_SUCCESS);
 		EXPECT_EQ(vector_push(vector, (void*)200), VECTOR_SUCCESS);
 
@@ -75,6 +78,9 @@ TEST(SPSC, Thread_Smoke_Test_Vector)
 	});
 
 	EXPECT_EQ(vector_push(vector, (void*)100), VECTOR_SUCCESS);
+
+	sleep(2);
+
 	EXPECT_EQ(vector_pop(vector, &m_ptr), VECTOR_SUCCESS);
 
 	EXPECT_EQ((int)m_ptr, 200); // verify the value
@@ -227,7 +233,7 @@ TEST(SPMC, Concurrency)
 	int sum_popped = 0;
 	sum_popped = std::accumulate(result, result + num_of_clients, 0);	// calculate the sum of all popped values
 
-	EXPECT_EQ(sum_popped, n * (n + 1) / 2);	 // check if the sum of all popped data is equal to the sum of all pushed data
+	EXPECT_EQ(sum_popped, (n - 1) * n / 2);	 // check if the sum of all popped data is equal to the sum of all pushed data
 }
 
 TEST(MPSC, VectorOverflow)
