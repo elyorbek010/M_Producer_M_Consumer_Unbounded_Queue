@@ -1,3 +1,24 @@
+/*
+* Thread-Safe Unbounded Vector.
+* 
+* Vector's working principles:
+* Vector of size 3
+*   |1|2|3|.|
+*    |     |
+* [begin  end)
+* 
+* Begin index is inclusive, the element at that index exists
+* End index is exclusive, the element at that index does not exist
+* 
+* Corner cases:
+*	'begin == end' -- vector is empty, because 'end' is exclusive
+*	'next(end) == begin' -- vector is full, because 'end' catched up 'begin'
+* 
+* Vector growth by factor of 2 every time it overflows.
+* 
+* Vector mutex is locked before modifying vector data
+* e.g. when pushing, popping, and expanding capacity
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,9 +38,10 @@
 
 struct vector_t
 {
-	size_t capacity;	
+	size_t capacity;
 	size_t begin;		// begin index is inclusive
 	size_t end;			// end index is exclusive
+
 	void** element;
 
 	pthread_mutex_t vector_guard;
@@ -39,7 +61,7 @@ static vector_ret_t vector_push_impl(vector_t* vector, void* element);
 vector_ret_t vector_pop(vector_t* vector, void** element);
 static vector_ret_t vector_pop_impl(vector_t* vector, void** element);
 
-static vector_ret_t vector_enlarge(vector_t* vector);
+static vector_ret_t vector_expand(vector_t* vector);
 
 static inline size_t vector_next_index(const size_t index, const size_t capacity);
 static inline size_t vector_prev_index(const size_t index, const size_t capacity);
@@ -58,7 +80,8 @@ vector_t* vector_create(size_t capacity)
 		return NULL;
 	}
 
-	vector->element = malloc((capacity + 1) * sizeof(vector->element[0])); // we add one more cell because end index is exclusive
+	// Allocate one more cell because end index is exclusive
+	vector->element = malloc((capacity + 1) * sizeof(vector->element[0])); 
 
 	if (vector->element == NULL)	// condition that malloc() failed
 	{
@@ -77,7 +100,8 @@ vector_t* vector_create(size_t capacity)
 		return NULL;
 	}
 
-	debug_print("Vector elements address: %p with capacity: %zu\n", vector->element, vector->capacity);
+	debug_print("Vector elements address: %p with capacity: %zu\n", 
+				vector->element, vector->capacity);
 
 	return vector;
 }
@@ -91,7 +115,7 @@ vector_ret_t vector_destroy(vector_t* vector)
 
 	free(vector->element);
 	free(vector);
-	
+
 	return VECTOR_SUCCESS;
 }
 
@@ -107,6 +131,8 @@ vector_ret_t vector_push(vector_t* vector, void* element)
 		return VECTOR_FAILURE;
 	}
 
+	debug_print("Push: %p at index: %zu\n", element, vector_prev_index(vector->end, vector->capacity));
+
 	if (pthread_mutex_unlock(&vector->vector_guard) != 0)
 		return VECTOR_FAILURE;
 
@@ -115,16 +141,16 @@ vector_ret_t vector_push(vector_t* vector, void* element)
 
 static vector_ret_t vector_push_impl(vector_t* vector, void* element) {
 	if (vector_next_index(vector->end, vector->capacity) == vector->begin) {	// Vector full condition
-		if (vector_enlarge(vector) != VECTOR_SUCCESS) {	
-			debug_print("Could not enlarge vector\n");
+		if (vector_expand(vector) != VECTOR_SUCCESS) {
+			debug_print("Could not expand vector\n");
 			return VECTOR_FAILURE;
 		}
 	}
 
-	vector->element[vector->end] = element;								// insert the element
-	vector->end = vector_next_index(vector->end, vector->capacity);		// update the 'end' index
+	vector->element[vector->end] = element;								
+	vector->end = vector_next_index(vector->end, vector->capacity);		
 
-	if (pthread_cond_signal(&vector->avail) != 0)		
+	if (pthread_cond_signal(&vector->avail) != 0)
 		return VECTOR_FAILURE;
 
 	return VECTOR_SUCCESS;
@@ -138,7 +164,14 @@ vector_ret_t vector_pop(vector_t* vector, void** p_element)
 	if (pthread_mutex_lock(&vector->vector_guard) != 0)
 		return VECTOR_FAILURE;
 
-	vector_pop_impl(vector, p_element);
+	if (vector_pop_impl(vector, p_element) != 0) {
+		pthread_mutex_unlock(&vector->vector_guard);
+		return VECTOR_FAILURE;
+	}
+	
+	debug_print("Pop: %p at index: %zu\n",
+		vector->element[vector_prev_index(vector->begin, vector->capacity)],
+		vector_prev_index(vector->begin, vector->capacity));
 
 	if (pthread_mutex_unlock(&vector->vector_guard) != 0)
 		return VECTOR_FAILURE;
@@ -159,52 +192,68 @@ static vector_ret_t vector_pop_impl(vector_t* vector, void** p_element) {
 	return VECTOR_SUCCESS;
 }
 
-static vector_ret_t vector_enlarge(vector_t* vector) {
-	void* new_location = NULL;
+static vector_ret_t vector_expand(vector_t* vector) {
+	size_t front_idx = vector->begin;
+	size_t end_idx = vector->end;
 
-	if (vector->capacity == 0) {
-		new_location = malloc(2 * sizeof(vector->element[0])); // minimum space for one efficient cell
-	} else {
-		new_location = malloc((vector->capacity * 2 + 1) * sizeof(vector->element[0])); // double capacity
-	}
+	size_t old_capacity = vector->capacity;
 
-	if (new_location == NULL)	// condition that malloc() failed
+	size_t new_capacity = (old_capacity == 0) ? 1 : 2 * old_capacity;
+
+	size_t old_actual_capacity = old_capacity + 1;	// one more cell because 'end' is exlusive
+	size_t new_actual_capacity = new_capacity + 1;	// --||--
+
+	size_t cell_size = sizeof(vector->element[0]);
+
+	void** old_location = vector->element;
+
+	void** new_location = malloc(new_actual_capacity * cell_size);	// we need one more cell 
+																	// because 'end' index is exclusive
+	if (new_location == NULL)
 		return VECTOR_FAILURE;
 
 	/*since the vector is cyclical, we must ensure that data does not partition incorrectly
 	* e.g. vector of size 3
-	* 
+	*
 	* e.g. |1|2|3|.| when enlarged becomes |1|2|3|.|.|.|.|.|
 	*       |     |                         |     |
 	*   begin(1)  |				       begin(1)   |
 	*           end(.)						    end(.)
-	* 
-	* Howerver, 
-	* 
+	*
+	* Howerver,
+	*
 	*      |3|.|1|2| when enlarged might become  |3|.|1|2|.|.|.|.|
 	*         | |                                   | |
 	*         | begin(1)					        | begin(1) -- still overflow condition
 	*         end(.)						        end(.)
-	* 
+	*
 	* so, we need to copy it linearly and reset 'begin' and 'end' indexes
 	*/
 
-	if (vector->begin < vector->end) 
-	{
-		memcpy(new_location, vector->element, (vector->capacity + 1) * sizeof(vector->element[0]));
-	} 
-	else 
-	{
-		memcpy(new_location, vector->element + vector->begin, (vector->capacity + 1 - vector->begin) * sizeof(vector->element[0]));
-		memcpy(new_location, vector->element, vector->end * sizeof(vector->element[0]));
+	if (front_idx <= end_idx) {
+		memcpy(new_location, old_location, old_actual_capacity * cell_size);
+	}
+	else {
+		// Copy from 'front_idx' till end
+		memcpy(new_location, 
+			old_location + front_idx, 
+			(old_actual_capacity - front_idx) * cell_size);	
+		
+		// Copy from beginning till 'end_idx'
+		memcpy(new_location,
+			old_location,
+			end_idx * cell_size);
 
-		vector->begin = 0;
-		vector->end = (vector->capacity + 1 - vector->begin) + vector->end;
+		front_idx = 0;											// |0|1|2|...|n|  n - length
+		end_idx = (old_actual_capacity - front_idx) + end_idx;	//front      end
 	}
 
-	vector->capacity = vector->capacity * 2;
+	free(old_location);
 
-	free(vector->element);
+	// update vector object
+	vector->capacity = new_capacity;
+	vector->begin = front_idx;
+	vector->end = end_idx;
 	vector->element = new_location;
 
 	debug_print("New vector elements address: %p with capacity: %zu\n", vector->element, vector->capacity);
