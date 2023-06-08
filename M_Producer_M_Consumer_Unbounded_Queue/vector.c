@@ -131,7 +131,9 @@ vector_ret_t vector_push(vector_t* vector, void* element)
 		return VECTOR_FAILURE;
 	}
 
-	debug_print("Push: %p at index: %zu\n", element, vector_prev_index(vector->end, vector->capacity));
+	debug_print("Push: %p at index: %zu\n", 
+		element, 
+		vector_prev_index(vector->end, vector->capacity));
 
 	if (pthread_mutex_unlock(&vector->vector_guard) != 0)
 		return VECTOR_FAILURE;
@@ -140,7 +142,8 @@ vector_ret_t vector_push(vector_t* vector, void* element)
 }
 
 static vector_ret_t vector_push_impl(vector_t* vector, void* element) {
-	if (vector_next_index(vector->end, vector->capacity) == vector->begin) {	// Vector full condition
+	// Expand vector first if FULL
+	if (vector_next_index(vector->end, vector->capacity) == vector->begin) {
 		if (vector_expand(vector) != VECTOR_SUCCESS) {
 			debug_print("Could not expand vector\n");
 			return VECTOR_FAILURE;
@@ -180,7 +183,7 @@ vector_ret_t vector_pop(vector_t* vector, void** p_element)
 }
 
 static vector_ret_t vector_pop_impl(vector_t* vector, void** p_element) {
-	while (vector->begin == vector->end)  // Vector empty condition
+	while (vector->begin == vector->end)  // Vector is EMPTY
 	{
 		if (pthread_cond_wait(&vector->avail, &vector->vector_guard) != 0)
 			return VECTOR_FAILURE;
@@ -207,25 +210,26 @@ static vector_ret_t vector_expand(vector_t* vector) {
 
 	void** old_location = vector->element;
 
-	void** new_location = malloc(new_actual_capacity * cell_size);	// we need one more cell 
-																	// because 'end' index is exclusive
+	void** new_location = malloc(new_actual_capacity * cell_size);	
+
 	if (new_location == NULL)
 		return VECTOR_FAILURE;
 
 	/*since the vector is cyclical, we must ensure that data does not partition incorrectly
 	* e.g. vector of size 3
+	*	   '.' means empty
 	*
 	* e.g. |1|2|3|.| when enlarged becomes |1|2|3|.|.|.|.|.|
 	*       |     |                         |     |
-	*   begin(1)  |				       begin(1)   |
-	*           end(.)						    end(.)
+	*   front[0]  |				       front[0]   |
+	*           end(3)						    end(3)
 	*
 	* Howerver,
 	*
 	*      |3|.|1|2| when enlarged might become  |3|.|1|2|.|.|.|.|
 	*         | |                                   | |
-	*         | begin(1)					        | begin(1) -- still overflow condition
-	*         end(.)						        end(.)
+	*         | front[2]					        | front[2] -- still overflow condition, 
+	*         end(1)						        end(1)        next(end) == front
 	*
 	* so, we need to copy it linearly and reset 'begin' and 'end' indexes
 	*/
@@ -244,8 +248,8 @@ static vector_ret_t vector_expand(vector_t* vector) {
 			old_location,
 			end_idx * cell_size);
 
-		front_idx = 0;											// |0|1|2|...|n|  n - length
-		end_idx = (old_actual_capacity - front_idx) + end_idx;	//front      end
+		front_idx = 0;										
+		end_idx = (old_actual_capacity - front_idx) + end_idx; // vector length
 	}
 
 	free(old_location);
@@ -256,17 +260,20 @@ static vector_ret_t vector_expand(vector_t* vector) {
 	vector->end = end_idx;
 	vector->element = new_location;
 
-	debug_print("New vector elements address: %p with capacity: %zu\n", vector->element, vector->capacity);
+	debug_print("New vector elements address: %p with capacity: %zu\n", 
+				vector->element, vector->capacity);
 
 	return VECTOR_SUCCESS;
 }
 
 static inline size_t vector_next_index(const size_t index, const size_t capacity)
 {
-	return (index + 1) % (capacity + 1);	// increment index, maximum number of cells = capacity + 1 since end index is exclusive
+	// note: actual allocated capacity is 'capacity + 1'
+	return (index + 1) % (capacity + 1);	
 }
 
 static inline size_t vector_prev_index(const size_t index, const size_t capacity)
 {
-	return index == 0 ? capacity : index - 1;
+	// note: actual allocated capacity is 'capacity + 1'
+	return index == 0 ? capacity : index - 1; 
 }
