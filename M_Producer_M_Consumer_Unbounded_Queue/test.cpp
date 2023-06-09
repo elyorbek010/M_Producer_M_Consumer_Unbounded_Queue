@@ -15,9 +15,17 @@ void sleep(int sec) { Sleep(sec * 1000); } // Make function sleep(), compatible 
 #include <unistd.h>
 #endif
 
-void mpmc_simulate(size_t vector_size, size_t data_amount,
-	size_t producers_n, size_t consumers_n,
-	size_t producer_sleep, size_t consumer_sleep);
+typedef struct
+{
+	size_t vector_size;
+	size_t data_amount;
+	size_t producers_n;
+	size_t consumers_n;
+	size_t producer_sleep;
+	size_t consumer_sleep;
+} mpmc_sim_opt_t;
+
+void mpmc_simulate(mpmc_sim_opt_t options);
 
 /* Call functions with invalid(NULL) pointers*/
 TEST(BASIC_OP, NULL_INPUT_TEST) {
@@ -119,7 +127,7 @@ TEST(BASIC_OP, Circulation)
 	for (size_t i = 0; i < 5; i++) {
 		ASSERT_EQ(vector_push(vector, (void*)i), VECTOR_SUCCESS);
 	}
-	
+
 	// pop, vector elem 0/5
 	for (size_t i = 0; i < 5; i++) {
 		ASSERT_EQ(vector_pop(vector, &data_ptr), VECTOR_SUCCESS);
@@ -142,146 +150,146 @@ TEST(BASIC_OP, Circulation)
 
 TEST(SPSC, Push_Pop)
 {
-	size_t vector_size = 1;
-	size_t data_amount = 1;
-	size_t producers_n = 1;
-	size_t consumers_n = 1;
-	size_t producer_sleep = 0;
-	size_t consumer_sleep = 1;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 1,
+			.data_amount = 1,
+			.producers_n = 1,
+			.consumers_n = 1,
+			.producer_sleep = 0,
+			.consumer_sleep = 1
+	});
 }
 
 TEST(SPSC, Pop_Block_Push)
 {
-	size_t vector_size = 1;
-	size_t data_amount = 1;
-	size_t producers_n = 1;
-	size_t consumers_n = 1;
-	size_t producer_sleep = 1;
-	size_t consumer_sleep = 0;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 1,
+			.data_amount = 1,
+			.producers_n = 1,
+			.consumers_n = 1,
+			.producer_sleep = 1,
+			.consumer_sleep = 0
+	});
 }
 
 TEST(SPSC, FullVector_Overflow)
 {
-	size_t vector_size = 10;
-	size_t data_amount = 50;
-	size_t producers_n = 1;
-	size_t consumers_n = 1;
-	size_t producer_sleep = 0;
-	size_t consumer_sleep = 1;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 10,
+			.data_amount = 50,
+			.producers_n = 1,
+			.consumers_n = 1,
+			.producer_sleep = 0,
+			.consumer_sleep = 1
+	});
 }
 
 TEST(SPMC, Push_Pop)
 {
-	size_t vector_size = 20;
-	size_t data_amount = 20;
-	size_t producers_n = 1;
-	size_t consumers_n = 5;
-	size_t producer_sleep = 0;
-	size_t consumer_sleep = 1;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 20,
+			.data_amount = 20,
+			.producers_n = 1,
+			.consumers_n = 5,
+			.producer_sleep = 0,
+			.consumer_sleep = 1
+	});
 }
 
 TEST(SPMC, Pop_Block_Push)
 {
-	size_t vector_size = 20;
-	size_t data_amount = 20;
-	size_t producers_n = 1;
-	size_t consumers_n = 5;
-	size_t producer_sleep = 1;
-	size_t consumer_sleep = 0;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 20,
+			.data_amount = 20,
+			.producers_n = 1,
+			.consumers_n = 5,
+			.producer_sleep = 1,
+			.consumer_sleep = 0
+	});
 }
 
 TEST(SPMC, FullVector_Overflow)
 {
-	size_t vector_size = 10;
-	size_t data_amount = 50;
-	size_t producers_n = 1;
-	size_t consumers_n = 5;
-	size_t producer_sleep = 0;
-	size_t consumer_sleep = 1;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 10,
+			.data_amount = 50,
+			.producers_n = 1,
+			.consumers_n = 5,
+			.producer_sleep = 0,
+			.consumer_sleep = 1
+	});
 }
 
 TEST(MPSC, Push_Pop)
 {
-	size_t vector_size = 20;
-	size_t data_amount = 20;
-	size_t producers_n = 5;
-	size_t consumers_n = 1;
-	size_t producer_sleep = 0;
-	size_t consumer_sleep = 1;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 20,
+			.data_amount = 20,
+			.producers_n = 5,
+			.consumers_n = 1,
+			.producer_sleep = 0,
+			.consumer_sleep = 1
+	});
 }
 
 TEST(MPSC, Pop_Block_Push)
 {
-	size_t vector_size = 20;
-	size_t data_amount = 20;
-	size_t producers_n = 5;
-	size_t consumers_n = 1;
-	size_t producer_sleep = 1;
-	size_t consumer_sleep = 0;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 20,
+			.data_amount = 20,
+			.producers_n = 5,
+			.consumers_n = 1,
+			.producer_sleep = 1,
+			.consumer_sleep = 0
+	});
 }
 
 TEST(MPSC, FullVector_Overflow)
 {
-	size_t vector_size = 10;
-	size_t data_amount = 50;
-	size_t producers_n = 5;
-	size_t consumers_n = 1;
-	size_t producer_sleep = 0;
-	size_t consumer_sleep = 1;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 10,
+			.data_amount = 50,
+			.producers_n = 5,
+			.consumers_n = 1,
+			.producer_sleep = 0,
+			.consumer_sleep = 1
+	});
 }
 
 TEST(MPMC, Push_Pop)
 {
-	size_t vector_size = 20;
-	size_t data_amount = 20;
-	size_t producers_n = 5;
-	size_t consumers_n = 5;
-	size_t producer_sleep = 0;
-	size_t consumer_sleep = 1;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 20,
+			.data_amount = 20,
+			.producers_n = 5,
+			.consumers_n = 5,
+			.producer_sleep = 0,
+			.consumer_sleep = 1
+	});
 }
 
 TEST(MPMC, Pop_Block_Push)
 {
-	size_t vector_size = 20;
-	size_t data_amount = 20;
-	size_t producers_n = 5;
-	size_t consumers_n = 5;
-	size_t producer_sleep = 1;
-	size_t consumer_sleep = 0;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 20,
+			.data_amount = 20,
+			.producers_n = 5,
+			.consumers_n = 5,
+			.producer_sleep = 1,
+			.consumer_sleep = 0
+	});
 }
 
 TEST(MPMC, FullVector_Overflow)
 {
-	size_t vector_size = 10;
-	size_t data_amount = 20;
-	size_t producers_n = 5;
-	size_t consumers_n = 5;
-	size_t producer_sleep = 1;
-	size_t consumer_sleep = 0;
-
-	mpmc_simulate(vector_size, data_amount, producers_n, consumers_n, producer_sleep, consumer_sleep);
+	mpmc_simulate(mpmc_sim_opt_t {
+		.vector_size = 10,
+			.data_amount = 20,
+			.producers_n = 5,
+			.consumers_n = 5,
+			.producer_sleep = 1,
+			.consumer_sleep = 0
+	});
 }
 
 // Recursive function to return gcd of a and b
@@ -302,10 +310,17 @@ int my_accumulate(int* result, size_t n) {
 	return std::accumulate(result, result + n, 0);
 }
 
-void mpmc_simulate(size_t vector_size, size_t data_amount,
-	size_t producers_n, size_t consumers_n,
-	size_t producer_sleep, size_t consumer_sleep)
+/*)*/
+
+void mpmc_simulate(mpmc_sim_opt_t options)
 {
+	size_t vector_size = options.vector_size;
+	size_t data_amount = options.data_amount;
+	size_t producers_n = options.producers_n; 
+	size_t consumers_n = options.consumers_n;
+	size_t producer_sleep = options.producer_sleep;
+	size_t consumer_sleep = options.consumer_sleep;
+
 	// we need to be sure that data_amount is divisible by both producers_n and consumers_n
 	long long alignment = lcm(producers_n, consumers_n);
 	if (data_amount % alignment != 0) {
@@ -332,10 +347,10 @@ void mpmc_simulate(size_t vector_size, size_t data_amount,
 
 			sleep(producer_sleep);
 
-			for (size_t iter = 0; iter < (unsigned int)((double)data_amount / (double)producers_n); iter++) {
-				EXPECT_EQ(vector_push(vector, (void*)(thread_n * iter)), VECTOR_SUCCESS);
-				producers_result[thread_n] += (int)(thread_n * iter);
-			}
+		for (size_t iter = 0; iter < (unsigned int)((double)data_amount / (double)producers_n); iter++) {
+			EXPECT_EQ(vector_push(vector, (void*)(thread_n * iter)), VECTOR_SUCCESS);
+			producers_result[thread_n] += (int)(thread_n * iter);
+		}
 
 			})
 		);
@@ -344,15 +359,15 @@ void mpmc_simulate(size_t vector_size, size_t data_amount,
 	// create consumers_n amount of consumer threads
 	for (size_t thread_n = 0; thread_n < consumers_n; thread_n++) {
 		consumers.push_back(std::thread([=, &consumers_result]() {
-		
+
 			void* data_ptr = nullptr;
 
-			sleep(consumer_sleep);
+		sleep(consumer_sleep);
 
-			for (size_t iter = 0; iter < (unsigned int)((double)data_amount / (double)consumers_n); iter++) {
-				EXPECT_EQ(vector_pop(vector, &data_ptr), VECTOR_SUCCESS);
-				consumers_result[thread_n] += (int)data_ptr;
-			}
+		for (size_t iter = 0; iter < (unsigned int)((double)data_amount / (double)consumers_n); iter++) {
+			EXPECT_EQ(vector_pop(vector, &data_ptr), VECTOR_SUCCESS);
+			consumers_result[thread_n] += (int)data_ptr;
+		}
 
 			})
 		);
