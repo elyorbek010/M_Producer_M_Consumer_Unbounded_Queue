@@ -17,7 +17,7 @@
 * Vector growth by factor of 2 every time it overflows.
 * 
 * Vector mutex is locked before modifying vector data
-* e.g. when pushing, popping, and expanding capacity
+* e.g. when pushing, popping, and expanding capacity		
 */
 #include <stdlib.h>
 #include <stdio.h>
@@ -238,18 +238,18 @@ static vector_ret_t vector_expand(vector_t* vector) {
 		memcpy(new_location, old_location, old_actual_capacity * cell_size);
 	}
 	else {
-		// Copy from 'front_idx' till end
+		// Copy old_location, from 'front_idx' till end, to new_location
 		memcpy(new_location, 
-			old_location + front_idx, 
-			(old_actual_capacity - front_idx) * cell_size);	
+			old_location + front_idx,							// address of an element at front_idx 
+			(old_actual_capacity - front_idx) * cell_size);		// size of elements starting from front_idx
 		
-		// Copy from beginning till 'end_idx'
-		memcpy(new_location,
+		// Continue copying old_location, from beginning till 'end_idx', to new_location
+		memcpy(new_location + (old_actual_capacity - front_idx),
 			old_location,
 			end_idx * cell_size);
 
-		front_idx = 0;										
 		end_idx = (old_actual_capacity - front_idx) + end_idx; // vector length
+		front_idx = 0;								
 	}
 
 	free(old_location);
@@ -259,9 +259,6 @@ static vector_ret_t vector_expand(vector_t* vector) {
 	vector->begin = front_idx;
 	vector->end = end_idx;
 	vector->element = new_location;
-
-	debug_print("New vector elements address: %p with capacity: %zu\n", 
-				vector->element, vector->capacity);
 
 	return VECTOR_SUCCESS;
 }
