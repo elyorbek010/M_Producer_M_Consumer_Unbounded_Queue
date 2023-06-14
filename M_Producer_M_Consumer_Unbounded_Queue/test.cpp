@@ -148,6 +148,38 @@ TEST(BASIC_OP, Circulation)
 	vector_destroy(vector);
 }
 
+TEST(BASIC_OP, Circulation_Overflow)
+{
+	vector_t* vector = nullptr;
+
+	vector = vector_create(5); // begin - 0, end - 0
+
+	void* data_ptr = nullptr;
+
+	// push, vector elem, elements 5/5 
+	for (size_t i = 0; i < 5; i++) {
+		ASSERT_EQ(vector_push(vector, (void*)i), VECTOR_SUCCESS);
+	}																// begin - 0, end - 5
+
+	// pop, vector elem, elements 2/5
+	for (size_t i = 0; i < 3; i++) {
+		ASSERT_EQ(vector_pop(vector, &data_ptr), VECTOR_SUCCESS);
+		ASSERT_EQ((size_t)data_ptr, i);
+	}																// begin - 3, end - 5
+
+	// push, vector elem, elements 6/5 -> 6/10
+	for (size_t i = 5; i < 9; i++) {
+		ASSERT_EQ(vector_push(vector, (void*)i), VECTOR_SUCCESS);	// begin - 3, end - 2 -> overflow
+	}																// begin - 0, end - 6
+
+	for (size_t i = 3; i < 9; i++) {
+		ASSERT_EQ(vector_pop(vector, &data_ptr), VECTOR_SUCCESS);
+		ASSERT_EQ((size_t)data_ptr, i);
+	}
+
+	vector_destroy(vector);
+}
+
 TEST(SPSC, Push_Pop)
 {
 	mpmc_simulate(mpmc_sim_opt_t {
@@ -309,8 +341,6 @@ long long lcm(int a, int b)
 int my_accumulate(int* result, size_t n) {
 	return std::accumulate(result, result + n, 0);
 }
-
-/*)*/
 
 void mpmc_simulate(mpmc_sim_opt_t options)
 {
