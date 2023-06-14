@@ -1,6 +1,8 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+#include <stddef.h>
+
 #define DEBUG 0
 
 typedef struct vector_t vector_t;

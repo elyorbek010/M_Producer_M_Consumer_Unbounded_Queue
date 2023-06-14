@@ -1,5 +1,5 @@
 extern "C" {
-#include "vector.h"
+#include "../vector.h"
 }
 
 #include "gtest/gtest.h"
@@ -7,13 +7,7 @@ extern "C" {
 #include <vector>
 #include <algorithm>
 #include <numeric>
-
-#ifdef _WIN32
-#include <Windows.h>
-void sleep(int sec) { Sleep(sec * 1000); } // Make function sleep(), compatible with unix
-#else
 #include <unistd.h>
-#endif
 
 typedef struct
 {
@@ -396,7 +390,7 @@ void mpmc_simulate(mpmc_sim_opt_t options)
 
 		for (size_t iter = 0; iter < (unsigned int)((double)data_amount / (double)consumers_n); iter++) {
 			EXPECT_EQ(vector_pop(vector, &data_ptr), VECTOR_SUCCESS);
-			consumers_result[thread_n] += (int)data_ptr;
+			consumers_result[thread_n] += (intptr_t) data_ptr;
 		}
 
 			})
