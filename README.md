@@ -2,38 +2,38 @@
 Last Test Results:
 
 <pre>
-2023-06-15T08:25:52+00:00
+2023-06-20T18:33:48+00:00
 Running ./MpmcBenchmark
-Run on (12 X 2894.56 MHz CPU s)
+Run on (8 X 2894.56 MHz CPU s)
 CPU Caches:
-  L1 Data 32 KiB (x12)
-  L1 Instruction 32 KiB (x12)
-  L2 Unified 512 KiB (x12)
+  L1 Data 32 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 512 KiB (x8)
   L3 Unified 8192 KiB (x1)
-Load Average: 0.41, 0.52, 0.25
+Load Average: 0.38, 0.38, 0.20
 ***WARNING*** Library was built as DEBUG. Timings may be affected.
 ---------------------------------------------------------------------------
 Benchmark                                 Time             CPU   Iterations
 ---------------------------------------------------------------------------
-Mpmc_Bench_spsc_simulate/1            91450 ns        70155 ns         9880
-Mpmc_Bench_spsc_simulate/2            93083 ns        70892 ns         9754
-Mpmc_Bench_spsc_simulate/4            94175 ns        72086 ns         9586
-Mpmc_Bench_spsc_simulate/8            95245 ns        72828 ns         9228
-Mpmc_Bench_spsc_simulate/16           97141 ns        74139 ns         8544
-Mpmc_Bench_spsc_simulate/32           94681 ns        71008 ns         9566
-Mpmc_Bench_spsc_simulate/64           95464 ns        73325 ns         9938
-Mpmc_Bench_spsc_simulate/128          98121 ns        74643 ns         9222
-Mpmc_Bench_spsc_simulate/256         105070 ns        74890 ns         9785
-Mpmc_Bench_spsc_simulate/512         130259 ns        81235 ns         8102
-Mpmc_Bench_spsc_simulate/1024        229619 ns       108083 ns         6386
-Mpmc_Bench_spsc_simulate/2048        410896 ns       128157 ns         5735
-Mpmc_Bench_spsc_simulate/4096        809113 ns       143179 ns         4948
-Mpmc_Bench_spsc_simulate/8192       1273639 ns       127216 ns         3924
-Mpmc_Bench_spsc_simulate/16384      2486333 ns       139572 ns         4906
-Mpmc_Bench_spsc_simulate/32768      4992034 ns       161164 ns         1000
-Mpmc_Bench_spsc_simulate/65536     10036854 ns       197881 ns         1000
-Mpmc_Bench_spsc_simulate/131072    20199482 ns       190577 ns         1000
-Mpmc_Bench_spsc_simulate/262144    42006283 ns       184393 ns          100
-Mpmc_Bench_spsc_simulate/524288    94421639 ns       243632 ns          100
-Mpmc_Bench_spsc_simulate/1048576  178806675 ns       282576 ns          100
+Mpmc_Bench_spsc_simulate/1            48160 ns        38579 ns        17283
+Mpmc_Bench_spsc_simulate/2            47306 ns        37713 ns        17529
+Mpmc_Bench_spsc_simulate/4            53420 ns        42275 ns        16933
+Mpmc_Bench_spsc_simulate/8            50350 ns        40183 ns        17694
+Mpmc_Bench_spsc_simulate/16           50272 ns        39887 ns        17587
+Mpmc_Bench_spsc_simulate/32           49459 ns        39664 ns        17639
+Mpmc_Bench_spsc_simulate/64           49788 ns        39683 ns        18299
+Mpmc_Bench_spsc_simulate/128          49081 ns        38549 ns        18059
+Mpmc_Bench_spsc_simulate/256          50861 ns        38359 ns        17815
+Mpmc_Bench_spsc_simulate/512          62452 ns        41703 ns        17619
+Mpmc_Bench_spsc_simulate/1024        111808 ns        45553 ns        15196
+Mpmc_Bench_spsc_simulate/2048        219766 ns        51081 ns        13767
+Mpmc_Bench_spsc_simulate/4096        469315 ns        59757 ns        11573
+Mpmc_Bench_spsc_simulate/8192       1008217 ns        74595 ns         9306
+Mpmc_Bench_spsc_simulate/16384      2243682 ns        95668 ns         6930
+Mpmc_Bench_spsc_simulate/32768      4667650 ns       118388 ns         1000
+Mpmc_Bench_spsc_simulate/65536      9118971 ns       132405 ns         1000
+Mpmc_Bench_spsc_simulate/131072    18756974 ns       158035 ns         1000
+Mpmc_Bench_spsc_simulate/262144    37241349 ns       174083 ns          100
+Mpmc_Bench_spsc_simulate/524288    75749726 ns       191195 ns          100
+Mpmc_Bench_spsc_simulate/1048576  153391734 ns       230662 ns          100
 </pre>
