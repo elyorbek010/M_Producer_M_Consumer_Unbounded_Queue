@@ -29,5 +29,4 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(benchmark)
 
-
 add_subdirectory(mpmc)
