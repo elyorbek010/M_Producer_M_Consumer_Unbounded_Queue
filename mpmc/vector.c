@@ -138,6 +138,9 @@ vector_ret_t vector_push(vector_t* vector, void* element)
 	if (pthread_mutex_unlock(&vector->vector_guard) != 0)
 		return VECTOR_FAILURE;
 
+	if (pthread_cond_signal(&vector->avail) != 0)
+		return VECTOR_FAILURE;
+
 	return VECTOR_SUCCESS;
 }
 
@@ -152,9 +155,6 @@ static vector_ret_t vector_push_impl(vector_t* vector, void* element) {
 
 	vector->element[vector->end] = element;								
 	vector->end = vector_next_index(vector->end, vector->capacity);		
-
-	if (pthread_cond_signal(&vector->avail) != 0)
-		return VECTOR_FAILURE;
 
 	return VECTOR_SUCCESS;
 }
