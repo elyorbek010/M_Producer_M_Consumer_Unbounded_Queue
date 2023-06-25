@@ -11,8 +11,11 @@ extern "C"
 #include <string>
 
 #define LOG_ENABLED 0
+#define BARRIER_ENABLED 0
 
+#if BARRIER_ENABLED == 1
 pthread_barrier_t thread_ready;
+#endif
 
 void spsc_simulate(size_t vector_size, size_t data_amount)
 {
@@ -20,7 +23,9 @@ void spsc_simulate(size_t vector_size, size_t data_amount)
 
   auto producer = std::thread([=]()
                               {
+#if BARRIER_ENABLED == 1
                                 pthread_barrier_wait(&thread_ready);
+#endif
                                 vector_ret_t ret = VECTOR_SUCCESS;
                                 size_t iter = 0;
 #if LOG_ENABLED == 1
@@ -62,7 +67,9 @@ void spsc_simulate(size_t vector_size, size_t data_amount)
 
   auto consumer = std::thread([=]()
                               {
+#if BARRIER_ENABLED == 1
                                 pthread_barrier_wait(&thread_ready);
+#endif
                                 vector_ret_t ret = VECTOR_SUCCESS;
                                 void *data_ptr = nullptr;
                                 size_t iter = 0;
@@ -90,9 +97,8 @@ void spsc_simulate(size_t vector_size, size_t data_amount)
                                   {
 #if LOG_ENABLED == 1
                                     consumer_logs << "POPPED "
-                                                  << iter 
-                                                  << " "
                                                   << (size_t)data_ptr
+                                                  << " "
                                                   << time
                                                   << "\n";
 #endif
@@ -113,7 +119,10 @@ void spsc_simulate(size_t vector_size, size_t data_amount)
 
 static void Bench_spsc_simulate(benchmark::State &state)
 {
+#if BARRIER_ENABLED == 1
   pthread_barrier_init(&thread_ready, NULL, 2);
+#endif
+
   for (auto _ : state)
   {
     spsc_simulate(1000, state.range(0));
