@@ -11,7 +11,7 @@ extern "C"
 #include <string>
 
 #define LOG_ENABLED 0
-#define BARRIER_ENABLED 0
+#define BARRIER_ENABLED 1
 
 #if BARRIER_ENABLED == 1
 pthread_barrier_t thread_ready;
